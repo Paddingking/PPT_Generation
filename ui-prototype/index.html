@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeckForge · PPT 工作台 — AI PPT 生成工具 UI 原型</title>
+<style>
+/* =========================================================
+   DeckForge · PPT 工作台
+   设计方向：深色专业创作工作台 · 白色画布为焦点 · 信号橙触点
+   ========================================================= */
+:root{
+  /* 基底 */
+  --bg0:#0b0e14;
+  --bg1:#10141d;
+  --bg2:#171c28;
+  --bg3:#1e2434;
+  --line1:#232a3d;
+  --line2:#2d3650;
+
+  /* 文字 */
+  --tx1:#eef2fb;
+  --tx2:#aab4cc;
+  --tx3:#6b7693;
+
+  /* 品牌/信号 */
+  --brand:#6ea8fe;      /* 星蓝：主品牌 */
+  --brand-soft:#1b2a43;
+  --signal:#ff9d66;     /* 信号橙：AI 动作/高亮 */
+  --signal-soft:#3a2818;
+  --ok:#58d68d;
+  --warn:#f5b041;
+  --err:#e74c3c;
+
+  /* 幻灯片画布系列 */
+  --paper:#ffffff;
+  --paper-title:#0c2b4d;
+  --paper-body:#20344d;
+  --paper-accent:#185fa5;
+  --paper-accent2:#378add;
+  --paper-soft:#e6f1fb;
+
+  --r-lg:14px; --r-md:10px; --r-sm:7px;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+  --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  background:
+    radial-gradient(1200px 600px at 85% -10%,rgba(110,168,254,.07),transparent 60%),
+    radial-gradient(800px 500px at 0% 110%,rgba(255,157,102,.05),transparent 55%),
+    var(--bg0);
+  color:var(--tx1);
+  font-size:14px;
+  overflow:hidden;
+}
+
+/* 顶部栏 */
+.topbar{
+  height:54px;display:flex;align-items:center;gap:14px;
+  padding:0 18px;border-bottom:1px solid var(--line1);
+  background:linear-gradient(180deg,rgba(23,28,40,.9),rgba(16,20,29,.85));
+  position:relative;z-index:50;
+}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.3px}
+.brand .logo{
+  width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--brand),#3f7df0);
+  box-shadow:0 4px 14px rgba(110,168,254,.35);
+  font-size:13px
+}
+.brand small{font-weight:500;color:var(--tx3);letter-spacing:1px}
+.top-nav{display:flex;gap:4px;margin-left:26px}
+.top-nav a{
+  color:var(--tx2);text-decoration:none;padding:7px 13px;border-radius:8px;
+  font-size:13px;transition:.18s;cursor:pointer
+}
+.top-nav a:hover{color:var(--tx1);background:var(--bg2)}
+.top-nav a.active{color:var(--tx1);background:var(--bg3);box-shadow:inset 0 0 0 1px var(--line2)}
+.spacer{flex:1}
+.prj-badge{
+  display:flex;align-items:center;gap:7px;font-size:12px;color:var(--tx3);
+  padding:5px 11px;border:1px dashed var(--line2);border-radius:20px;background:var(--bg1)
+}
+.prj-badge b{color:var(--tx2);font-weight:600}
+.avatar{
+  width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;
+  background:linear-gradient(135deg,#ffd6a0,#ff9d66);color:#3a1c08;font-weight:700;cursor:pointer
+}
+
+/* 主工作区 */
+.workspace{display:flex;height:calc(100vh - 54px)}
+/* 左侧流程栏 */
+.stage-rail{
+  width:212px;border-right:1px solid var(--line1);padding:20px 14px;
+  background:var(--bg1);display:flex;flex-direction:column;gap:6px;flex-shrink:0
+}
+.rail-title{font-size:11px;letter-spacing:1.5px;color:var(--tx3);margin:2px 8px 10px;font-weight:600}
+.rail-step{
+  position:relative;display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:var(--r-md);
+  cursor:pointer;transition:.18s;color:var(--tx3)
+}
+.rail-step:hover{background:var(--bg2);color:var(--tx2)}
+.rail-step.active{
+  background:linear-gradient(90deg,var(--bg3),var(--bg2));color:var(--tx1);
+  box-shadow:inset 0 0 0 1px var(--line2)
+}
+.rail-step.active::before{
+  content:"";position:absolute;left:-14px;top:0;bottom:0;width:3px;
+  background:var(--signal);border-radius:3px
+}
+.step-num{
+  width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;
+  background:var(--bg2);border:1px solid var(--line2);flex-shrink:0
+}
+.rail-step.active .step-num{background:var(--signal);border-color:var(--signal);color:#241206}
+.rail-step.done .step-num{background:var(--ok);border-color:var(--ok);color:#06251a}
+.step-txt{display:flex;flex-direction:column;line-height:1.2}
+.step-txt b{font-size:13px;font-weight:600}
+.step-txt span{font-size:10.5px;color:var(--tx3)}
+.rail-note{margin-top:auto;font-size:10.5px;color:var(--tx3);padding:12px;border:1px dashed var(--line2);border-radius:var(--r-sm);line-height:1.6}
+
+/* 主内容 */
+.main{flex:1;overflow-y:auto;position:relative;padding:0}
+.view{display:none;animation:viewIn .32s cubic-bezier(.2,.7,.2,1)}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- 通用元件 ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;
+  font-size:13px;font-weight:600;padding:10px 18px;border-radius:var(--r-md);
+  transition:.2s;background:var(--bg3);color:var(--tx2);font-family:inherit
+}
+.btn:hover{background:#283250;color:var(--tx1)}
+.btn.primary{background:linear-gradient(135deg,#5b93f6,#3f7df0);color:#fff;box-shadow:0 6px 20px rgba(63,125,240,.35)}
+.btn.primary:hover{box-shadow:0 8px 26px rgba(63,125,240,.5);transform:translateY(-1px)}
+.btn.signal{background:linear-gradient(135deg,#ffb37f,#ff9d66);color:#3a1c08;box-shadow:0 6px 20px rgba(255,157,102,.3)}
+.btn.signal:hover{box-shadow:0 8px 26px rgba(255,157,102,.45)}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1px var(--line2)}
+.btn.ghost:hover{background:var(--bg2);color:var(--tx1)}
+.btn.sm{padding:6px 12px;font-size:12px;border-radius:var(--r-sm)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.card{background:var(--bg2);border:1px solid var(--line1);border-radius:var(--r-lg)}
+.section-head{display:flex;align-items:center;gap:12px;padding:22px 30px 14px}
+.section-head h2{font-size:16px;font-weight:700;color:var(--tx1)}
+.section-head p{font-size:12.5px;color:var(--tx3)}
+.pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.pill.orange{background:var(--signal-soft);color:var(--signal)}
+.pill.blue{background:var(--brand-soft);color:var(--brand)}
+.pill.dim{background:var(--bg3);color:var(--tx2)}
+.pill.warn-quiet{background:rgba(245,176,65,.14);color:var(--warn);cursor:help;letter-spacing:.3px}
+.muted{color:var(--tx3)}
+.mono{font-family:var(--mono)}
+.tag{font-size:11px;padding:2px 8px;border-radius:5px;background:var(--bg3);color:var(--tx2);border:1px solid var(--line2)}
+
+/* ---------- 视图1：创作入口 ---------- */
+.entry-wrap{max-width:920px;margin:0 auto;padding:34px 30px 60px}
+.entry-hero{margin-bottom:26px}
+.entry-hero h1{font-size:27px;font-weight:800;letter-spacing:-.5px;line-height:1.3}
+.entry-hero h1 em{font-style:normal;background:linear-gradient(120deg,var(--signal),#ffc190);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.entry-hero p{color:var(--tx3);margin-top:8px;font-size:13.5px}
+.input-card{padding:20px;margin-bottom:16px}
+.textinput{
+  width:100%;min-height:128px;resize:vertical;background:var(--bg1);color:var(--tx1);
+  border:1px solid var(--line2);border-radius:var(--r-md);padding:14px 16px;font-size:14px;
+  font-family:inherit;line-height:1.7;transition:.2s
+}
+.textinput:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,168,254,.15)}
+.input-meta{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.dropzone{
+  display:flex;align-items:center;gap:9px;flex:1;min-width:200px;padding:8px 12px;
+  border:1px dashed var(--line2);border-radius:var(--r-md);cursor:pointer;transition:.2s;font-size:12.5px;color:var(--tx3)
+}
+.dropzone:hover{border-color:var(--brand);background:var(--bg1);color:var(--tx2)}
+.quick-prompts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.qp{
+  font-size:12px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:.18s;
+  background:var(--bg3);border:1px solid var(--line2);color:var(--tx2)
+}
+.qp:hover{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+
+/* 阶段A 约束对话向导 */
+.wizard-card{overflow:hidden}
+.wizard-head{padding:18px 20px;border-bottom:1px solid var(--line1);display:flex;align-items:center;gap:12px}
+.wizard-head h3{font-size:14.5px;font-weight:700}
+.wizard-bubbles{display:flex;flex-direction:column;gap:12px;padding:20px}
+.bubble{max-width:82%;padding:11px 15px;border-radius:12px;font-size:13px;line-height:1.7;position:relative;animation:bubbleIn .3s}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.bubble.ai{background:var(--bg3);color:var(--tx1);border:1px solid var(--line2);border-top-left-radius:3px}
+.bubble.user{align-self:flex-end;background:linear-gradient(135deg,#3f63c8,#3f7df0);color:#fff;border-top-right-radius:3px}
+.bubble .who{font-size:10px;color:var(--tx3);margin-bottom:4px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.bubble.user .who{color:rgba(255,255,255,.7)}
+.constraint-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.constraint-chips .chip{
+  display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;border-radius:20px;cursor:pointer;
+  background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);transition:.18s
+}
+.constraint-chips .chip:hover{border-color:var(--signal);color:var(--signal)}
+.constraint-chips .chip.sel{background:var(--signal-soft);border-color:var(--signal);color:var(--signal)}
+.constraint-chips .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--tx3)}
+.constraint-chips .chip.sel .dot{background:var(--signal)}
+.chat-inputbar{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line1);background:var(--bg1);align-items:center}
+.ctx-preview{
+  font-size:12px;color:var(--tx3);display:flex;gap:8px;flex-wrap:wrap;align-items:center
+}
+
+/* ---------- 视图2：模板库 ---------- */
+.tpl-wrap{max-width:1000px;margin:0 auto;padding:30px}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:16px}
+.tpl-card{
+  border:1px solid var(--line1);border-radius:var(--r-md);overflow:hidden;cursor:pointer;
+  background:var(--bg2);transition:.2s;position:relative
+}
+.tpl-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--line2)}
+.tpl-card.sel{border-color:var(--signal);box-shadow:0 0 0 2px rgba(255,157,102,.35)}
+.tpl-thumb{aspect-ratio:16/9;display:grid;place-items:center;padding:20px}
+.tpl-card.corporate .tpl-thumb{background:linear-gradient(135deg,#185fa5,#0c2b4d)}
+.tpl-card.sunset .tpl-thumb{background:linear-gradient(135deg,#ff9d66,#b8502e)}
+.tpl-card.fresh .tpl-thumb{background:linear-gradient(135deg,#2e8b57,#1c5340)}
+.tpl-card.mono .tpl-thumb{background:linear-gradient(135deg,#3a3f4d,#171c28)}
+.tpl-card.sky .tpl-thumb{background:linear-gradient(135deg,#378add,#173e66)}
+.thumb-slide{
+  width:58%;aspect-ratio:16/9;background:rgba(255,255,255,.95);border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;padding:9%;gap:6%
+}
+.thumb-bar{height:6%;border-radius:2px;background:#185fa5;opacity:.9}
+.thumb-line{height:3.5%;border-radius:2px;background:rgba(32,52,77,.35)}
+.thumb-line:nth-child(2){width:78%}.thumb-line:nth-child(3){width:52%}.thumb-line:nth-child(4){width:64%}
+.tpl-info{padding:12px 14px;border-top:1px solid var(--line1)}
+.tpl-info b{font-size:13px;font-weight:600}
+.tpl-info .row{display:flex;justify-content:space-between;align-items:center;margin-top:3px}
+.tpl-src{display:flex;align-items:center;justify-content:center;gap:10px;margin:20px auto 0;max-width:520px}
+.import-box{
+  flex:1;padding:26px;border:1.5px dashed var(--line2);border-radius:var(--r-md);text-align:center;cursor:pointer;transition:.2s
+}
+.import-box:hover{border-color:var(--brand);background:var(--bg1)}
+.import-box .ic{font-size:24px;margin-bottom:8px}
+.import-box b{display:block;font-size:13px;margin-bottom:3px}
+.import-box span{font-size:11.5px;color:var(--tx3)}
+.fallback-banner{
+  display:flex;align-items:center;gap:16px;margin:18px auto 0;max-width:520px;
+  padding:14px 16px;border:1px solid rgba(245,176,65,.5);border-radius:var(--r-md);
+  background:rgba(245,176,65,.07);animation:bubbleIn .3s
+}
+
+/* ---------- 视图3：预览编辑（阶段B主战场） ---------- */
+.preview-layout{display:flex;height:calc(100vh - 54px)}
+/* 画布区 */
+.preview-stage{flex:1;overflow-y:auto;padding:28px 36px;position:relative}
+.stage-top{display:flex;align-items:center;gap:10px;max-width:880px;margin:0 auto 20px}
+.ppt-crumbs{font-size:12px;color:var(--tx3);display:flex;align-items:center;gap:8px}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:none;color:var(--tx3);font-size:12px;padding:7px 14px;cursor:pointer;font-family:inherit;transition:.15s}
+.seg button:hover{color:var(--tx1)}
+.seg button.on{background:var(--bg3);color:var(--tx1)}
+.canvas-frame{max-width:880px;margin:0 auto}
+.slide-row{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.slide-index{
+  width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0;
+  background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);font-family:var(--mono)
+}
+.slide-row.focus .slide-index{background:var(--signal);border-color:var(--signal);color:#241206}
+.slide-slot{flex:1;min-width:0}
+.slide{
+  aspect-ratio:16/9;border-radius:4px;position:relative;overflow:hidden;cursor:pointer;
+  background:var(--paper);box-shadow:0 4px 20px rgba(0,0,0,.4);transition:.22s
+}
+.slide:hover{box-shadow:0 10px 34px rgba(0,0,0,.55);transform:translateY(-2px)}
+.slide-row.focus .slide{box-shadow:0 0 0 3px var(--signal)}
+.slide-edit{
+  position:absolute;top:10px;right:10px;opacity:0;transition:.2s;
+  background:rgba(11,14,20,.85);color:#fff;border:none;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer
+}
+.slide:hover .slide-edit{opacity:1}
+/* 幻灯片内部渲染（模拟 16:9 白底汇报稿） */
+.s-inner{width:100%;height:100%;cursor:text}
+.s-title{font-weight:700;color:var(--paper-title);line-height:1.2}
+.s-title.tl{font-size:9.5%;padding:3% 4% 0}
+.s-title.bl{font-size:7%;padding:2.6% 4% 0}
+.s-sub{padding:0 4.2%;font-size:4.3%;color:var(--paper-body);opacity:.8}
+.s-bullets{padding:3.5% 5%;display:flex;flex-direction:column;gap:2.4%}
+.s-b{font-size:4%;color:var(--paper-body);display:flex;gap:2.2%;line-height:1.4}
+.s-b::before{content:"▍";color:var(--paper-accent);display:inline-block;font-weight:700}
+.s-accbar{position:absolute;left:0;bottom:0;height:1.6%;width:100%;background:linear-gradient(90deg,var(--paper-accent),var(--paper-accent2))}
+.s-foot{position:absolute;bottom:2.5%;right:3.5%;font-size:2.6%;color:var(--paper-body);opacity:.5;font-family:var(--mono)}
+.zebra{background:
+  radial-gradient(500px 260px at 100% 0%,var(--paper-accent2)44%,transparent 60%),
+  linear-gradient(120deg,var(--paper-accent2),var(--paper-accent))}
+.zebra .s-inner{color:#fff}
+.zebra .s-title{color:#fff;padding:4% 4% 0}
+.zebra .s-sub{color:rgba(255,255,255,.9)}
+.zebra .s-bullets{color:#fff}
+.zebra .s-b::before{color:#ffd6a0}
+.zebra .s-foot{color:rgba(255,255,255,.7)}
+.agenda-bar{display:flex;gap:1.2%;padding:3.2% 4%;flex-wrap:wrap}
+.agenda-item{flex:1;min-width:15%;background:var(--paper-soft);border-radius:5px;padding:3% 2%;text-align:center;font-size:3.4%;color:var(--paper-title);font-weight:600}
+.agenda-item.f{background:var(--paper-accent);color:#fff}
+
+/* 空态 */
+.empty-box{
+  min-height:340px;border:1.5px dashed var(--line2);border-radius:var(--r-lg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;
+  background:var(--bg1);padding:40px 20px
+}
+.empty-ic{font-size:38px;opacity:.7}
+.empty-t{font-size:15px;font-weight:700;color:var(--tx1)}
+.empty-s{font-size:12.5px;color:var(--tx3);line-height:1.7;margin-bottom:6px}
+
+/* 侧边对话面板（阶段B常驻） */
+.chat-panel{
+  width:356px;border-left:1px solid var(--line1);background:var(--bg1);flex-shrink:0;
+  display:flex;flex-direction:column
+}
+.chat-head{padding:14px 16px;border-bottom:1px solid var(--line1)}
+.chat-head .r1{display:flex;align-items:center;justify-content:space-between}
+.chat-head h3{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(88,214,141,.2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(88,214,141,.2)}50%{box-shadow:0 0 0 6px rgba(88,214,141,.08)}}
+.sync-row{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11.5px;color:var(--tx3)}
+.switch{position:relative;width:34px;height:19px;background:var(--bg3);border:1px solid var(--line2);border-radius:20px;cursor:pointer;transition:.2s;flex-shrink:0}
+.switch.on{background:var(--signal);border-color:var(--signal)}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on::after{left:17px}
+.chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.cmsg{display:flex;gap:9px;animation:msgIn .25s}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cmsg .ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.cmsg.ai .ic{background:var(--signal-soft);color:var(--signal)}
+.cmsg.user .ic{background:linear-gradient(135deg,#3f63c8,#3f7df0);color:#fff}
+.cmsg.user{flex-direction:row-reverse}
+.cmsg .body{max-width:78%;padding:9px 12px;border-radius:11px;font-size:12.5px;line-height:1.65}
+.cmsg.ai .body{background:var(--bg3);border:1px solid var(--line2);border-top-left-radius:3px}
+.cmsg.user .body{background:linear-gradient(135deg,#2f4fc0,#3f7df0);color:#fff;border-top-right-radius:3px}
+.diff-line{font-size:11.5px;margin-top:7px;padding:6px 9px;border-radius:6px;font-family:var(--mono);line-height:1.5}
+.diff-line.replace{background:rgba(245,176,65,.1);color:var(--warn)}
+.diff-line.ok{background:rgba(88,214,141,.08);color:var(--ok)}
+.diff-line .p{color:var(--tx3)}
+.diff-line .arrow{color:var(--tx3);margin:0 4px}
+.ask-card{margin-top:8px;padding:10px 12px;border:1px solid var(--warn);border-radius:9px;background:rgba(245,176,65,.07)}
+.ask-card .t{font-size:11.5px;color:var(--warn);font-weight:600;margin-bottom:7px}
+.ask-card .btns{display:flex;gap:7px}
+.chat-foot{border-top:1px solid var(--line1);padding:12px 14px 14px;background:var(--bg1)}
+.focus-hint{font-size:11px;color:var(--tx3);margin-bottom:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.focus-hint b{color:var(--signal);font-weight:600}
+.chat-input{display:flex;gap:8px;align-items:flex-end}
+.chat-input textarea{
+  flex:1;background:var(--bg2);border:1px solid var(--line2);color:var(--tx1);border-radius:10px;
+  padding:10px 12px;font-size:13px;font-family:inherit;line-height:1.5;resize:none;min-height:44px;max-height:110px
+}
+.chat-input textarea:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,157,102,.12)}
+.chat-input .send{
+  width:44px;height:44px;border-radius:10px;border:none;cursor:pointer;flex-shrink:0;
+  background:linear-gradient(135deg,#ffb37f,#ff9d66);color:#3a1c08;font-size:17px;transition:.2s
+}
+.chat-input .send:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(255,157,102,.4)}
+.undo-strip{display:flex;gap:6px;padding:0 14px 10px;overflow-x:auto}
+.undo-chip{
+  flex-shrink:0;font-size:10.5px;color:var(--tx3);padding:4px 10px;border-radius:14px;cursor:pointer;
+  border:1px solid var(--line2);background:var(--bg2);transition:.15s
+}
+.undo-chip:hover{border-color:var(--brand);color:var(--brand)}
+.undo-chip.root{border-style:dashed}
+
+/* 底部导出条 */
+.export-bar{
+  border-top:1px solid var(--line1);padding:12px 30px;background:var(--bg1);
+  display:flex;align-items:center;gap:18px
+}
+.export-note{font-size:12px;color:var(--tx3);flex:1;display:flex;flex-direction:column;gap:3px}
+.export-note .ok-line{color:var(--ok);font-size:11.5px;font-weight:600}
+
+/* ---------- 视图4：设置 ---------- */
+.set-wrap{max-width:680px;margin:0 auto;padding:34px 24px 60px}
+.set-card{padding:22px;margin-bottom:16px}
+.set-card h3{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.set-card .desc{font-size:12.5px;color:var(--tx3);margin-bottom:18px;line-height:1.6}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--tx2);margin-bottom:6px;font-weight:600}
+.proto-tabs{display:flex;gap:8px;margin-bottom:14px}
+.proto-tabs button{
+  padding:7px 14px;border-radius:8px;cursor:pointer;transition:.18s;
+  background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);font-size:12.5px;font-family:inherit
+}
+.proto-tabs button.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.inp{
+  width:100%;background:var(--bg1);border:1px solid var(--line2);color:var(--tx1);border-radius:var(--r-sm);
+  padding:9px 12px;font-size:13px;font-family:inherit;transition:.15s
+}
+.inp:focus{outline:none;border-color:var(--brand)}
+.inp.mono{font-family:var(--mono);font-size:12px}
+.privacy-note{margin-top:16px;padding:11px 14px;border:1px solid var(--line1);border-radius:var(--r-sm);font-size:11.5px;color:var(--tx3);background:var(--bg1);line-height:1.6}
+
+/* toast */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;
+  background:var(--bg3);border:1px solid var(--line2);color:var(--tx1);padding:11px 18px;border-radius:10px;
+  font-size:13px;box-shadow:var(--shadow);transition:.3s;z-index:200;display:flex;align-items:center;gap:9px;pointer-events:none
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .dot{width:7px;height:7px;border-radius:50%}
+
+/* 首页切换浮层覆盖 */
+body.editing .workspace{display:none}
+body.editing .topbar .prj-badge{display:contents}
+.hidden{display:none!important}
+
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#3a4a70}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<!-- ===================== 顶栏 ===================== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">✧</div>
+    <span>DeckForge<small>PPT 工作台</small></span>
+  </div>
+  <nav class="top-nav">
+    <a class="active" data-view="entry">创作入口</a>
+    <a data-view="library">模板库</a>
+    <a data-view="preview">预览编辑</a>
+    <a data-view="settings">设置</a>
+  </nav>
+  <div class="spacer"></div>
+  <div class="prj-badge">🎬 项目 · <b>AI 转型战略汇报</b> · 8 页</div>
+  <div class="avatar">许</div>
+</header>
+
+<!-- ===================== 总舞台 ===================== -->
+<div class="workspace">
+
+  <!-- 左侧流程 -->
+  <aside class="stage-rail">
+    <div class="rail-title">制作流程</div>
+    <div class="rail-step done" data-goto="entry" data-step="1"><div class="step-num">✓</div><div class="step-txt"><b>输入与约束</b><span>阶段A · 生成前</span></div></div>
+    <div class="rail-step done" data-goto="library" data-step="2"><div class="step-num">✓</div><div class="step-txt"><b>套用模板</b><span>内置 / 导入</span></div></div>
+    <div class="rail-step active" data-goto="preview" data-step="3"><div class="step-num">3</div><div class="step-txt"><b>预览与微调</b><span>阶段B · 常驻</span></div></div>
+    <div class="rail-step" data-goto="settings" data-step="4"><div class="step-num">4</div><div class="step-txt"><b>导出</b><span>可编辑 PPTX</span></div></div>
+    <div class="rail-note">内容 JSON ⟷ 样式 JSON<br>双通道 · diff 增量 · 快照撤销</div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="main">
+
+    <!-- ========== 视图 1：创作入口（阶段A） ========== -->
+    <section id="view-entry" class="view active">
+      <div class="entry-wrap">
+        <div class="entry-hero">
+          <h1>把一句话，做成一页页<br><em>可编辑的 PPT</em></h1>
+          <p>输入原始想法 → 与 AI 约定风格与骨架 → 一键生成内容 + 版式双稿 → 预览微调 → 导出原生可编辑 PPTX。</p>
+        </div>
+
+        <div class="card input-card">
+          <textarea class="textinput" id="intentInput" placeholder="描述你的演示意图，例如：&#10;帮我把「2026 上半年增长复盘」做成一份 8 页的季度汇报 PPT，重点讲三条主线增长引擎，面向高管，商务风格，字要少，配得上「确定性增长」这个基调。">帮我做一份「AI 数字化转型」的汇报 PPT，面向高管决策层，10 页内，重点是落地路线、投资回报和风险控制，别太花哨。<｜end▁of▁thinking｜></textarea>
+          <div class="input-meta">
+            <div class="dropzone">📄 上传文件 <span class="muted">.docx / .md / .txt</span></div>
+            <button class="btn ghost sm">🧩 粘贴 Markdown / 大纲</button>
+            <span class="spacer" style="flex:1"></span>
+            <button class="btn primary" id="btnStartStageA">开始制作 · 进入阶段A</button>
+          </div>
+          <div class="quick-prompts">
+            <span class="muted" style="font-size:12px;align-self:center">快速开始：</span>
+            <button class="qp" data-fill="请把这段复盘做成 6 页周会 PPT，逻辑清晰的清单式表达。">周会复盘</button>
+            <button class="qp" data-fill="做一份 12 页新产品发布会宣讲稿，煽动性强、故事化，科技感版式。">产品发布</button>
+            <button class="qp" data-fill="为我的团队周报生成 8 页月报，数据导向，可用表格呈现。">数据月报</button>
+          </div>
+        </div>
+
+        <!-- 阶段A 约束向导 -->
+        <div class="card wizard-card" id="wizardCard">
+          <div class="wizard-head">
+            <span class="pill orange">阶段 A · 生成前约束对话</span>
+            <h3>先聊几句，把「制作要求」定下来</h3>
+          </div>
+          <div class="wizard-bubbles" id="wizardBubbles">
+            <div class="bubble ai">
+              <div class="who">S · PPT 助手</div>
+              我读懂了——你要一份 **AI 数字化转型** 的高管汇报，10 页上下。在落笔前，我先跟你把三点基调对齐（都可跳过，直接按我的建议来）：
+            </div>
+            <div class="bubble ai">
+              <div class="who">S · PPT 助手</div>
+              ① 先定**视觉风格**，你想要？<br>
+              <div class="constraint-chips" id="chipsStyle">
+                <span class="chip" data-v="corporate"><span class="dot"></span>商务蓝 · 稳重</span>
+                <span class="chip" data-v="sunset"><span class="dot"></span>暖橙 · 进取</span>
+                <span class="chip" data-v="fresh"><span class="dot"></span>翠绿 · 生机</span>
+                <span class="chip" data-v="mono"><span class="dot"></span>黑白 · 极简</span>
+              </div>
+            </div>
+            <div class="bubble ai">
+              <div class="who">S · PPT 助手</div>
+              ② **页数 & 要点密度**？（页数影响骨架，要点密度影响单页信息量）
+              <div class="constraint-chips" id="chipsDensity">
+                <span class="chip" data-v="8"><span class="dot"></span>8 页 · 精炼</span>
+                <span class="chip sel" data-v="10"><span class="dot"></span>10 页 · 平衡</span>
+                <span class="chip" data-v="12"><span class="dot"></span>12 页 · 详尽</span>
+              </div>
+            </div>
+            <div class="bubble ai">
+              <div class="who">S · PPT 助手</div>
+              ③ **内容基调**：侧重「落地路线」还是「投资回报」为主轴？告诉我你的取舍，或直接说「按建议来」。
+            </div>
+          </div>
+          <div class="chat-inputbar">
+            <textarea class="textinput" id="stageAInput" style="min-height:48px;flex:1" placeholder="回复约束，例如：风格听你的，10页，按落地路线讲…"></textarea>
+            <button class="btn signal" id="btnStageASend">发送约束 ▶</button>
+          </div>
+          <div style="padding:0 20px 18px" class="ctx-preview">
+            <span class="pill dim">当前集束</span>
+            <span class="tag">风格：商务蓝 · 稳重</span>
+            <span class="tag">页数：10 页</span>
+            <span class="tag">要点：平衡</span>
+            <span class="tag mono" style="border-style:dashed">未定：主轴</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+          <button class="btn ghost" id="btnSkipA">跳过约束 · 直接生成</button>
+          <button class="btn signal" id="btnGenerateV1">✨ 按约束生成双稿（内容+版式）</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 视图 2：模板库 ========== -->
+    <section id="view-library" class="view">
+      <div class="tpl-wrap">
+        <div class="section-head" style="padding-left:0">
+          <div><h2>选择幻灯片骨架</h2><p>内置预设可直接套用，或导入你自己的 .pptx 提取版式骨架 — 内容与你组织的规范对齐。</p></div>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn ghost sm" id="btnRefreshImport">↻ 刷新识别</button>
+        </div>
+
+        <div class="tpl-grid" id="tplGrid">
+          <div class="tpl-card corporate sel" data-tpl="corporate">
+            <div class="tpl-thumb"><div class="thumb-slide"><div class="thumb-bar"></div><div class="thumb-line"></div><div class="thumb-line"></div><div class="thumb-line"></div></div></div>
+            <div class="tpl-info"><b>商务蓝 · 稳重</b>
+              <div class="row"><span class="pill blue">内置预设</span><span class="pill dim">16 : 9</span></div>
+            </div>
+          </div>
+          <div class="tpl-card sunset" data-tpl="sunset">
+            <div class="tpl-thumb"><div class="thumb-slide"><div class="thumb-bar" style="background:#b8502e"></div><div class="thumb-line"></div><div class="thumb-line"></div><div class="thumb-line"></div></div></div>
+            <div class="tpl-info"><b>暖橙 · 进取</b>
+              <div class="row"><span class="pill blue">内置预设</span><span class="pill dim">16 : 9</span></div>
+            </div>
+          </div>
+          <div class="tpl-card fresh" data-tpl="fresh">
+            <div class="tpl-thumb"><div class="thumb-slide"><div class="thumb-bar" style="background:#2e8b57"></div><div class="thumb-line"></div><div class="thumb-line"></div><div class="thumb-line"></div></div></div>
+            <div class="tpl-info"><b>翠绿 · 生机</b>
+              <div class="row"><span class="pill blue">内置预设</span><span class="pill dim">16 : 9</span></div>
+            </div>
+          </div>
+          <div class="tpl-card mono" data-tpl="mono">
+            <div class="tpl-thumb"><div class="thumb-slide"><div class="thumb-bar" style="background:#3a3f4d"></div><div class="thumb-line"></div><div class="thumb-line"></div><div class="thumb-line"></div></div></div>
+            <div class="tpl-info"><b>黑白 · 极简</b>
+              <div class="row"><span class="pill blue">内置预设</span><span class="pill dim">16 : 9</span></div>
+            </div>
+          </div>
+          <div class="tpl-card" data-tpl="imported" style="border-color:var(--ok)">
+            <div class="tpl-thumb" style="background:linear-gradient(135deg,#175a3a,#0e3d28)">
+              <div style="width:58%;aspect-ratio:16/9;background:#fff;border-radius:4px;display:flex;flex-direction:column;padding:8%">
+                <div style="height:8%;background:#e67e22;border-radius:2px;opacity:.9"></div>
+                <div style="display:flex;gap:6%;margin-top:10%">
+                  <div style="flex:1;background:#eef1e6;border-radius:3px;height:60%"></div>
+                  <div style="flex:1;background:#eef1e6;border-radius:3px;height:60%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="tpl-info"><b>我司 · 季度汇报模板</b>
+              <div class="row"><span class="pill orange">已导入</span><span class="pill dim">16 : 9</span></div>
+              <div class="row" style="margin-top:5px;font-size:11px;color:var(--ok)">✓ 版式骨架已识别 · 4 类页面</div>
+            </div>
+          </div>
+          <div class="tpl-card" data-tpl="add">
+            <div class="tpl-thumb" style="background:var(--bg1)">
+              <div style="width:58%;aspect-ratio:16/9;border:1.5px dashed var(--line2);border-radius:5px;display:grid;place-items:center;color:var(--tx3);font-size:11px">＋ 导入 .pptx</div>
+            </div>
+            <div class="tpl-info"><b>导入外部模板</b>
+              <div class="row"><span class="pill dim">提取骨架</span><span class="pill dim">识别失败回退</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tpl-src">
+          <div class="import-box" id="importBox">
+            <div class="ic">📁</div><b>拖入 / 选择 .pptx 文件</b>
+            <span>提取页面类型 · 占位符 · 主题色 · 字体骨架<br>纯背景图模板无法识别时将回退内置，不会报错</span>
+          </div>
+        </div>
+
+        <!-- 识别失败回退横幅（P0-8 演示） -->
+        <div class="fallback-banner hidden" id="tplFallback">
+          <div style="flex:1">
+            <b style="font-size:13.5px;color:var(--warn)">⚠ 未识别到可用的版式骨架</b>
+            <div style="font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.6">该模板占位符 / 主题不规范（<span class="mono">recognized=false</span>）。已自动<b>回退到内置预设「商务蓝 · 稳重」</b>，你的内容与新演示不受影响 —— 不会报错崩溃。</div>
+          </div>
+          <button class="btn ghost sm" id="tplFallbackOk">知道了</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 视图 3：预览编辑（阶段B主战场） ========== -->
+    <div id="view-preview" class="view" style="display:none;height:calc(100vh - 54px)">
+      <div class="preview-layout" style="width:100%">
+        <!-- 画布 -->
+        <div class="preview-stage">
+          <div class="stage-top">
+            <div class="ppt-crumbs"><span class="pill orange">阶段 B · 预览微调</span><span>8 / 10 页</span></div>
+            <span class="spacer" style="flex:1"></span>
+            <div class="seg">
+              <button class="on">16:9</button>
+              <button>4:3</button>
+            </div>
+            <button class="btn ghost sm">🎨 主题</button>
+            <button class="btn sm signal" id="btnFocusChat">与 AI 对话</button>
+          </div>
+
+          <!-- 空态（大纲为空时，P0-4） -->
+          <div class="canvas-frame" id="previewEmpty">
+            <div class="empty-box">
+              <div class="empty-ic">🗂️</div>
+              <div class="empty-t">这里还没有任何幻灯片</div>
+              <div class="empty-s">先在「创作入口」输入想法，经过阶段A约束后生成内容+版式双稿，<br>预览就会出现在这个画布上。</div>
+              <button class="btn primary sm" data-goto-back="entry">← 去输入想法</button>
+            </div>
+          </div>
+
+          <div class="canvas-frame" id="previewContent">
+            <!-- 页1 封面 -->
+            <div class="slide-row focus" data-idx="1">
+              <div class="slide-index">1</div>
+              <div class="slide-slot">
+                <div class="slide zebra">
+                  <div class="s-inner">
+                    <div class="s-title tl" style="font-size:13%">AI 数字化转型战略</div>
+                    <div class="s-sub" style="margin-top:2.5%;width:60%">2026 年度高管汇报 · 数字化转型中心</div>
+                    <div class="s-accbar"></div>
+                    <div class="s-foot">SLIDE 01</div>
+                  </div>
+                  <button class="slide-edit">✎ 编辑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 页2 要点 -->
+            <div class="slide-row" data-idx="2">
+              <div class="slide-index">2</div>
+              <div class="slide-slot">
+                <div class="slide">
+                  <div class="s-inner">
+                    <div class="s-title bl">为什么现在必须转型</div>
+                    <div class="s-bullets">
+                      <div class="s-b">AI 正从辅助工具演化为核心生产力</div>
+                      <div class="s-b">非转型企业将在成本与效率上全面落后</div>
+                      <div class="s-b">2026 是布局的关键窗口期</div>
+                    </div>
+                    <div class="s-accbar"></div><div class="s-foot">SLIDE 02</div>
+                  </div>
+                  <button class="slide-edit">✎ 编辑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 页3 议程 -->
+            <div class="slide-row" data-idx="3">
+              <div class="slide-index">3</div>
+              <div class="slide-slot">
+                <div class="slide">
+                  <div class="s-inner" style="display:flex;flex-direction:column">
+                    <div class="s-title bl" style="padding-bottom:0">今日议程</div>
+                    <div class="agenda-bar" style="flex:1;align-content:center">
+                      <div class="agenda-item f">认知对齐</div>
+                      <div class="agenda-item">落地路线</div>
+                      <div class="agenda-item">投资回报</div>
+                      <div class="agenda-item">风险控制</div>
+                      <div class="agenda-item">行动计划</div>
+                    </div>
+                    <div class="s-accbar"></div><div class="s-foot">SLIDE 03</div>
+                  </div>
+                  <button class="slide-edit">✎ 编辑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 页4 双列对比 -->
+            <div class="slide-row" data-idx="4">
+              <div class="slide-index">4</div>
+              <div class="slide-slot">
+                <div class="slide">
+                  <div class="s-inner"><div class="s-title bl">转型前后对比</div>
+                    <div style="display:flex;gap:3%;padding:3% 4%">
+                      <div style="flex:1;border:1.5px solid #d9e2ee;border-radius:8px;overflow:hidden">
+                        <div style="background:#eef2f7;color:#6b7693;padding:6%;text-align:center;font-size:4.2%;font-weight:700">转型前</div>
+                        <div class="s-bullets" style="padding:5%;gap:4%">
+                          <div class="s-b" style="font-size:4%">人工整理 · 重复低效</div>
+                          <div class="s-b" style="font-size:4%">数据孤岛 · 决策滞后</div>
+                          <div class="s-b" style="font-size:4%">响应迟缓 · 错失时机</div>
+                        </div>
+                      </div>
+                      <div style="flex:1;border:1.5px solid #185fa5;border-radius:8px;overflow:hidden">
+                        <div style="background:linear-gradient(120deg,#185fa5,#378add);color:#fff;padding:6%;text-align:center;font-size:4.2%;font-weight:700">转型后</div>
+                        <div class="s-bullets" style="padding:5%;gap:4%">
+                          <div class="s-b" style="font-size:4%">AI 辅助 · 智能提效</div>
+                          <div class="s-b" style="font-size:4%">数据驱动 · 实时研判</div>
+                          <div class="s-b" style="font-size:4%">敏捷响应 · 抢占先机</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="s-accbar"></div><div class="s-foot">SLIDE 04</div>
+                  </div>
+                  <button class="slide-edit">✎ 编辑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 页5 落地路线 -->
+            <div class="slide-row" data-idx="5">
+              <div class="slide-index">5</div>
+              <div class="slide-slot">
+                <div class="slide">
+                  <div class="s-inner">
+                    <div class="s-title bl">三阶段落地路线</div>
+                    <div style="display:flex;gap:3%;padding:3% 4%">
+                      <div style="flex:1;background:var(--paper-soft);border-radius:8px;padding:4% 3%;text-align:center">
+                        <div style="font-size:5%;color:var(--paper-accent);font-weight:800">PHASE 1</div><div style="font-size:4.5%;font-weight:700;margin:6px 0 3px;color:var(--paper-title)">试点</div>
+                        <div style="font-size:3.8%;color:var(--paper-body)">选定 1 条核心<br>业务线快速验证</div>
+                      </div>
+                      <div style="flex:1;background:var(--paper-soft);border-radius:8px;padding:4% 3%;text-align:center">
+                        <div style="font-size:5%;color:var(--paper-accent);font-weight:800">PHASE 2</div><div style="font-size:4.5%;font-weight:700;margin:6px 0 3px;color:var(--paper-title)">推广</div>
+                        <div style="font-size:3.8%;color:var(--paper-body)">复制成功经验<br>横向规模化</div>
+                      </div>
+                      <div style="flex:1;background:var(--paper-soft);border-radius:8px;padding:4% 3%;text-align:center">
+                        <div style="font-size:5%;color:var(--paper-accent);font-weight:800">PHASE 3</div><div style="font-size:4.5%;font-weight:700;margin:6px 0 3px;color:var(--paper-title)">规模化</div>
+                        <div style="font-size:3.8%;color:var(--paper-body)">AI 全面融入<br>组织运营肌理</div>
+                      </div>
+                    </div>
+                    <div class="s-accbar"></div><div class="s-foot">SLIDE 05</div>
+                  </div>
+                  <button class="slide-edit">✎ 编辑</button>
+                </div>
+              </div>
+            </div>
+            <!-- 占位：其余页省略，用省略卡片 -->
+            <div style="display:flex;gap:14px;align-items:center;justify-content:center;padding:10px 0;color:var(--tx3);font-size:12px">
+              <span style="border:1px dashed var(--line2);border-radius:8px;padding:12px 30px">＋ 6 — 10 页 · 缩略预览省略（原型示意）</span>
+            </div>
+          </div><!-- /画布 5页实演 -->
+
+          <!-- 导出条 -->
+          <div class="export-bar" style="margin-top:8px;max-width:880px;margin-left:auto;margin-right:auto;border-radius:12px">
+            <div class="export-note">
+              <span class="ok-line">✓ 内容 + 版式 双稿已就绪 · 10 页 · 商务蓝骨架</span>
+              <span>导出为原生可编辑 PPTX（PowerPoint / WPS）— 所有文本与形状保持可改</span>
+            </div>
+            <button class="btn signal" id="btnExport">⬇ 导出可编辑 PPTX</button>
+          </div>
+        </div><!-- /preview-stage -->
+
+        <!-- 右侧对话面板 -->
+        <div class="chat-panel" id="chatPanel">
+          <div class="chat-head">
+            <div class="r1"><h3><span class="live-dot"></span>AI PPT 助手 · 预览微调</h3><span class="pill dim">常驻</span></div>
+            <div class="sync-row">
+              <div class="switch on" id="syncSwitch" title="局部样式改动同步为全局默认"></div>
+              <span>局部样式改动↔同步全局</span>
+              <span class="pill warn-quiet mono" id="consistencyCnt" title="同类样式连续改≥2次触发全局询问(P0-13)">2/2 触发询问</span>
+            </div>
+          </div>
+
+          <div class="chat-body" id="chatBody">
+            <div class="cmsg ai"><div class="ic">S</div><div class="body">双稿已生成。现在**主战场**——你可以直接改预览，或在这里用自然语言让我精确微调。当前聚焦<b style="color:var(--signal)">第 1 页</b>。</div></div>
+            <div class="cmsg user"><div class="ic">许</div><div class="body">第 3 页标题改成更有力一些，别加内容</div></div>
+            <div class="cmsg ai"><div class="ic">S</div><div class="body">好的，只改标题措辞，不增删要点（润色铁律）。已定位 <span class="mono">slides[2].title</span>：
+              <div class="diff-line replace"><span class="p">"今日议程"</span><span class="arrow">→</span><span>"迈向 AI ，从战略共识开始"</span></div>
+              <div class="diff-line ok mono">✓ 已最小 diff 合并 · 未越界</div>
+            </div></div>
+
+            <div class="cmsg user"><div class="ic">许</div><div class="body">全文把主色加深一点，稳重些</div></div>
+            <div class="cmsg ai"><div class="ic">S</div><div class="body">这是<b style="color:var(--signal)">全局 STYLE</b> 意图，命中 <span class="mono">palette.primary</span>，将同步所有页。
+              <div class="diff-line replace"><span class="p">#185FA5</span><span class="arrow">→</span><span>#0C3B66</span></div>
+              <div class="ask-card"><div class="t">⚠ 一致性确认</div><div class="btns">
+                <button class="btn sm signal" data-ask="global">应用全局</button><button class="btn ghost sm" data-ask="local">仅此页</button>
+              </div></div>
+            </div></div>
+
+            <div class="cmsg ai"><div class="ic">S</div><div class="body">（原型示意：第 4、5 页也演示了双列对比 / 三阶段路线版式。快照栈已就绪，可随时回退近 5 档或回到初稿。）</div></div>
+          </div>
+
+          <div class="undo-strip">
+            <span class="mono" style="font-size:10px;color:var(--tx3);align-self:center;letter-spacing:.5px">快照</span>
+            <span class="undo-chip root">⊗ 回到初稿</span>
+            <span class="undo-chip">s5</span>
+            <span class="undo-chip">s4</span>
+            <span class="undo-chip">s3</span>
+            <span class="undo-chip" style="color:var(--tx1);border-color:var(--brand)">s2 ↺ 当前</span>
+            <span class="undo-chip" style="color:var(--tx3)">s1</span>
+          </div>
+
+          <div class="chat-foot">
+            <div class="focus-hint">🎯 当前聚焦 <b>第 1 页</b> · 封面 — <span class="muted">点任意页可改指代（P1）</span></div>
+            <div class="chat-input">
+              <textarea id="stageBInput" placeholder="输入微调指令，如「第3页标题更有力」「全文主色加深」…"></textarea>
+              <button class="send" id="btnStageBSend">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 视图 4：设置 ========== -->
+    <section id="view-settings" class="view">
+      <div class="set-wrap">
+        <div class="section-head" style="padding-left:0"><div><h2>LLM 供应商 · 本地配置</h2><p>支持 OpenAI 兼容 + Anthropic 兼容双协议，baseUrl 可自由配置 — 切换供应商零改码。</p></div></div>
+
+        <div class="card set-card">
+          <h3><span>🔌</span> 连接配置</h3>
+          <div class="desc">内容与样式均发送至你配置的 LLM 供应商。可在下方开启「匿名化」，去除文件名与作者信息。</div>
+          <div class="field">
+            <label>配置名称</label>
+            <input class="inp" value="我的主力 · 默认" placeholder="如：OpenAI / DeepSeek / 本地 Ollama">
+          </div>
+          <div class="field">
+            <label>协议兼容</label>
+            <div class="proto-tabs">
+              <button class="on" data-proto="oa">OpenAI 兼容</button>
+              <button data-proto="an">Anthropic 兼容</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Base URL</label>
+            <input class="inp mono" value="https://api.deepseek.com/v1" placeholder="https://…">
+          </div>
+          <div class="field">
+            <label>API Key</label>
+            <input class="inp mono" type="password" value="sk-••••••••••••••••••••" placeholder="sk-…">
+          </div>
+          <div class="field">
+            <label>模型</label>
+            <input class="inp" value="deepseek-chat" placeholder="model-id">
+          </div>
+          <div style="display:flex;gap:10px;margin-top:6px">
+            <button class="btn ghost sm" id="btnTestConn">⚡ 测试连接</button>
+            <button class="btn primary sm">保存配置</button>
+          </div>
+          <div class="privacy-note">
+            🔒 <b>本地存储</b> · API Key 存于本机 SQLite，数据不出设备。你希望匿名化发送内容吗？
+            <span style="display:inline-flex;align-items:center;gap:6px;margin-left:8px"><div class="switch" id="anonSwitch"></div><span class="muted">去除文件名 / 作者</span></span>
+          </div>
+        </div>
+
+        <div class="card set-card">
+          <h3><span>🧾</span> 生成偏好（默认）</h3>
+          <div class="desc">控制双通道 LLM 的默认行为，可在项目中随时覆盖。</div>
+          <div style="display:flex;flex-direction:column;gap:13px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b style="font-size:13px">内容润色</b><div class="muted" style="font-size:11.5px;margin-top:2px">默认只润色措辞，不增删要点条数</div></div>
+              <div class="switch on"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b style="font-size:13px">格式优化（设计决策）</b><div class="muted" style="font-size:11.5px;margin-top:2px">LLM 产出结构化设计决策 JSON，非法值回退骨架</div></div>
+              <div class="switch on"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b style="font-size:13px">默认中文字体</b><div class="muted" style="font-size:11.5px;margin-top:2px">微软雅黑 / 宋体 回退 · 防乱码</div></div>
+              <div class="seg"><button class="on">微软雅黑</button><button>宋体</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><span class="dot"></span><span id="toastText"></span></div>
+
+<script>
+/* ============ 简单的全局交互 ============ */
+const $=s=>document.querySelector(s);
+function toast(msg,color){
+  const t=$('#toast');t.classList.add('show');$('#toastText').textContent=msg;
+  t.querySelector('.dot').style.background=color||'var(--ok)';
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* 视图切换 */
+const views={entry:'#view-entry',library:'#view-library',preview:'#view-preview',settings:'#view-settings'};
+// 步骤映射：视图名 -> 当前完成到第几步(N步已达成)
+const stepDoneMap={entry:2,library:2,preview:3,settings:3};
+function goView(name,opts){
+  opts=opts||{};
+  document.querySelectorAll('.top-nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===name));
+  for(const k in views){const el=$(views[k]);el.classList.toggle('active',k===name)}
+  if(opts.toast)toast(opts.toast,opts.color);
+  // 预览视图特殊：body 层
+  $('#view-preview').style.display=name==='preview'?'flex':'none';
+  // 若未经过生成，进入预览给一个提示 + 空态联动
+  const generated=!!window._generated;
+  $('#previewEmpty').classList.toggle('hidden',generated);
+  $('#previewContent').classList.toggle('hidden',!generated);
+  const exportBar=document.querySelector('.preview-stage .export-bar');
+  if(exportBar)exportBar.style.display=generated?'':'none';
+  const cp=document.querySelector('.chat-panel');
+  if(cp)cp.style.display=generated?'':'none';
+  if(name==='preview' && !generated && !opts._silent)toast('尚未生成 · 预览为空态（P0-4）','var(--brand)');
+  syncRail(name);
+}
+function syncRail(activeView){
+  const target=stepDoneMap[activeView]||1;
+  document.querySelectorAll('.rail-step').forEach(s=>{
+    const stepNo=parseInt(s.dataset.step||'0',10);
+    s.classList.remove('active','done');
+    if(activeView===s.dataset.goto)s.classList.add('active');
+    else if(stepNo<=target)s.classList.add('done');
+  });
+}
+document.querySelectorAll('[data-view]').forEach(a=>a.addEventListener('click',e=>{
+  e.preventDefault();goView(e.currentTarget.dataset.view);
+}));
+document.querySelectorAll('.rail-step[data-goto]').forEach(s=>s.addEventListener('click',()=>{
+  goView(s.dataset.goto);
+}));
+
+/* 约束 chips 单选 */
+document.querySelectorAll('.constraint-chips').forEach(grp=>{
+  grp.addEventListener('click',e=>{
+    const c=e.target.closest('.chip');if(!c)return;
+    grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+    c.classList.add('sel');toast('已记录约束：'+c.dataset.v);
+  });
+});
+/* 快速填充 */
+document.querySelectorAll('.qp').forEach(q=>q.addEventListener('click',()=>{
+  $('#intentInput').value=q.dataset.fill;toast('已填入示例意图');
+}));
+
+/* 阶段A 生成 */
+$('#btnStartStageA').addEventListener('click',()=>{
+  $('#wizardCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  toast('已进入阶段A 约束对话 — 不需要可直接跳过');
+});
+document.querySelector('[data-goto-back="entry"]').addEventListener('click',()=>goView('entry'));
+$('#btnSkipA').addEventListener('click',()=>{
+  window._generated=true;
+  toast('已按建议生成首版（内容 + 版式双稿）');
+  setTimeout(()=>goView('preview',{toast:'首稿已生成，进入预览微调','color':'var(--signal)'}),650);
+});
+$('#btnGenerateV1').addEventListener('click',()=>{
+  window._generated=true;
+  toast('按当前约束，双通道生成中…');
+  setTimeout(()=>goView('preview',{toast:'✨ 内容 + 版式 双稿已生成（10 页）','color':'var(--signal)'}),900);
+});
+$('#btnStageASend').addEventListener('click',()=>{
+  const v=$('#stageAInput').value.trim();
+  if(!v){toast('请输入与助手约定的内容');return}
+  $('#wizardBubbles').insertAdjacentHTML('beforeend',`<div class="bubble user"><div class="who">许老板</div>${v}</div>`);
+  $('#stageAInput').value='';
+  setTimeout(()=>$('#wizardBubbles').insertAdjacentHTML('beforeend',
+    `<div class="bubble ai"><div class="who">S · PPT 助手</div>收到，已纳入「<span class="mono" style="font-size:12px">stage=CONSTRAIN · userConstraints</span>」。集束就绪，随时可<span class="tag">生成双稿</span>。</div>`),400);
+  $('#wizardBubbles').scrollTop=$('#wizardBubbles').scrollHeight;
+  toast('约束已记录');
+});
+
+/* 模板选择 */
+document.querySelectorAll('.tpl-card').forEach(t=>t.addEventListener('click',()=>{
+  if(t.dataset.tpl==='add'){
+    $('#tplFallback').classList.remove('hidden');
+    toast('演示：识别失败 → 回退内置（P0-8）','var(--warn)');
+    return;
+  }
+  $('#tplFallback').classList.add('hidden');
+  document.querySelectorAll('.tpl-card').forEach(x=>x.classList.remove('sel'));
+  t.classList.add('sel');
+  toast('已套用骨架：'+t.querySelector('b').textContent,'var(--signal)');
+}));
+$('#tplFallbackOk').addEventListener('click',()=>{$('#tplFallback').classList.add('hidden');});
+$('#importBox').addEventListener('click',()=>{
+  $('#tplFallback').classList.remove('hidden');
+  toast('正在解析骨架… 已识别 → 若失败将回退内置','var(--brand)');
+});
+
+/* 幻灯片聚焦 + 对话提示 */
+document.querySelectorAll('.slide-row').forEach(r=>r.addEventListener('click',e=>{
+  if(e.target.closest('.slide-edit')){toast('原型：就地编辑该页标题/要点（P0-5）');return}
+  document.querySelectorAll('.slide-row').forEach(x=>x.classList.remove('focus'));
+  r.classList.add('focus');
+  const idx=r.dataset.idx;
+  toast('当前聚焦改为第 '+idx+' 页（指代精确化）','var(--signal)');
+  document.querySelector('.focus-hint').innerHTML=`🎯 当前聚焦 <b style="color:var(--signal)">第 ${idx} 页</b> — <span class="muted">点任意页可改指代（P1）</span>`;
+  if(idx!=='1')document.querySelectorAll('.slide-row .slide').forEach(s=>s.style.filter='none');
+}));
+
+/* 一致性确认按钮（应用全局 / 仅此页）—— 演示 diff 实际生效 */
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-ask]');if(!btn)return;
+  const card=btn.closest('.ask-card');
+  if(card)card.style.display='none';
+  if(btn.dataset.ask==='global'){
+    document.documentElement.style.setProperty('--paper-accent','#0C3B66');
+    document.documentElement.style.setProperty('--paper-accent2','#1a5f96');
+    document.querySelectorAll('.s-accbar,.agenda-item.f').forEach(el=>el.style.background='linear-gradient(90deg,#0C3B66,#1a5f96)');
+    toast('✓ palette.primary 已全局应用 → 预览所有页主色加深','var(--signal)');
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('.s-accbar').forEach(el=>el.style.background='linear-gradient(90deg,#0C3B66,#1a5f96)');
+    });
+  }else{
+    toast('已按局部处理：仅第 1 页（越界保护生效）','var(--ok)');
+  }
+});
+
+/* 同步开关 */
+$('#syncSwitch').addEventListener('click',()=>{$('#syncSwitch').classList.toggle('on');toast($('#syncSwitch').classList.contains('on')?'开启：局部样式改动自动同步为全局':'关闭：仅改动所指页面');});
+$('#anonSwitch').addEventListener('click',()=>{$('#anonSwitch').classList.toggle('on');toast($('#anonSwitch').classList.contains('on')?'已匿名化：去除文件名/作者':'未匿名化');});
+
+/* 阶段B 对话 */
+$('#btnStageBSend').addEventListener('click',sendB);
+$('#stageBInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendB();}});
+function sendB(){
+  const v=$('#stageBInput').value.trim();if(!v)return;
+  $('#chatBody').insertAdjacentHTML('beforeend',`<div class="cmsg user"><div class="ic">许</div><div class="body">${v}</div></div>`);
+  $('#stageBInput').value='';
+  $('#chatBody').scrollTop=$('#chatBody').scrollHeight;
+  setTimeout(()=>{
+    $('#chatBody').insertAdjacentHTML('beforeend',
+      `<div class="cmsg ai"><div class="ic">S</div><div class="body">已按指令产出<b>最小增量 patch</b> 并校验合并，其余页未触碰。
+        <div class="diff-line ok mono">✓ path 校验通过 · value 合法 · 未越界</div>
+        <div class="diff-line replace mono"><span class="p">patch 示例</span><span class="arrow">→</span>{"path":"slides[0].title","op":"replace"}</div></div>`);
+    $('#chatBody').scrollTop=$('#chatBody').scrollHeight;
+    toast('预览已实时刷新（多轮叠加有效，可快照回退）');
+  },700);
+  $('#btnFocusChat').textContent='● 对话中';
+}
+
+/* 导出 */
+$('#btnExport').addEventListener('click',()=>toast('🎉 已导出原生可编辑 PPTX · PowerPoint/WPS 可打开可改','var(--ok)'));
+
+/* 设置协议切换 */
+document.querySelectorAll('.proto-tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.proto-tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  toast('切换为 '+b.textContent);
+}));
+
+/* 测试连接 */
+$('#btnTestConn').addEventListener('click',()=>{toast('连接成功 ✓ (mock)','var(--ok)');});
+
+/* 对比版式 seg */
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  if(b.textContent==='4:3')toast('已切换 4:3（原型示意）');else toast('16:9');
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+}));
+
+/* 初始提示 */
+toast('欢迎使用 DeckForge PPT 工作台 · 依次走完流程');
+</script>
+</body>
+</html>

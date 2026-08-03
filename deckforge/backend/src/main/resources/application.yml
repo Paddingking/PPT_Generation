@@ -1,0 +1,32 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: deckforge-backend
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: GMT+8
+
+# 本地数据目录（SQLite 文件位置，可配置）
+deckforge:
+  data:
+    dir: ./data
+    db-name: deckforge.db
+  export:
+    dir: ./data/exports
+  llm:
+    # 默认仅用 mock provider，避免无 Key 时启动/联调卡死。
+    # 用户可在「设置」页填 baseUrl+Key 后切换真实 Provider。
+    default-provider: mock
+    connect-timeout-ms: 15000
+    read-timeout-ms: 120000
+    max-retries: 1
+
+logging:
+  level:
+    com.deckforge: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%logger{36}] - %msg%n"

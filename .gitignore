@@ -1,0 +1,42 @@
+# ---------- Java / Maven ----------
+deckforge/backend/target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# ---------- 运行时数据（不入库） ----------
+deckforge/backend/data/
+# 数据库 / 日志 / 导出的演示用 PPTX / 上传文件
+*.db
+*.sqlite
+*.log
+test_export.pptx
+
+# ---------- Node / Vite ----------
+node_modules/
+frontend/dist/
+dist/
+*.local
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+# Vite 构建期临时文件
+*.timestamp-*.mjs
+
+# ---------- 测试产物 ----------
+e2e-tests/playwright-report/
+e2e-tests/.pw*
+e2e-tests/test-results/
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# WorkBuddy 工作区内部目录（不提交）
+.workbuddy/
